@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="utf-8"?>
+<modification>
+    <name>Pavilion theme</name>
+    <code>pavilion_default</code>
+    <version>1.2.0</version>
+    <author>ThemeBurn Ltd</author>
+    <link>http://www.themeburn.com</link>
+
+    <file path="admin/view/template/common/menu.tpl">
+        <operation>
+            <search><![CDATA[
+            <li id="dashboard"><a href="<?php echo $home; ?>"><i class="fa fa-dashboard fa-fw"></i> <span><?php echo $text_dashboard; ?></span></a></li>
+            ]]></search>
+            <add position="after"><![CDATA[
+            <li id="tb_menu_pavilion">
+              <?php if (isset($this->registry) && $this->registry->get('config')->get('stories_settings')): ?>
+              <a class="parent">
+                <img src="../tb_themes/pavilion/admin/view/image/i_oc_menu.png" style="margin-top: 2px; margin-left: 2px; margin-right: 1px; vertical-align: top;" />
+                <span>Pavilion CP</span>
+              </a>
+              <ul>
+                <li><a href="index.php?route=module/pavilion&token=<?php echo $_GET['token']; ?>">Theme Options</a></li>
+                <li><a href="index.php?route=stories/index&token=<?php echo $_GET['token']; ?>">Stories</a></li>
+              </ul>
+              <?php else: ?>
+              <a href="index.php?route=module/pavilion&token=<?php echo $_GET['token']; ?>">
+                <img src="../tb_themes/pavilion/admin/view/image/i_oc_menu.png" style="margin-top: 2px; margin-left: 2px; margin-right: 1px; vertical-align: top;" />
+                <span>Pavilion CP</span>
+              </a>
+              <?php endif; ?>
+            </li>
+            ]]></add>
+        </operation>
+    </file>
+
+    <file path="admin/controller/extension/modification.php">
+        <operation>
+            <search><![CDATA[
+            public function index() {
+            ]]></search>
+            <add position="after"><![CDATA[
+            if (isset($_SESSION['tb_redirect'])) {
+                $redirect = $_SESSION['tb_redirect'];
+                unset($_SESSION['tb_redirect']);
+                $this->response->redirect($this->url->link($redirect, 'token=' . $this->session->data['token'], 'SSL'));
+            }
+            ]]></add>
+        </operation>
+    </file>
+
+    <file path="system/engine/front.php">
+        <operation>
+            <search><![CDATA[
+            $this->pre_action[] = $pre_action;
+            ]]></search>
+            <add position="before"><![CDATA[
+            $ref = new ReflectionObject($pre_action);
+            $f = $ref->getProperty('file');
+            $f->setAccessible(true);
+            if (basename($f->getValue($pre_action)) == 'maintenance.php' && !(isset($this->registry->get('request')->get['route']) && 0 === strpos($this->registry->get('request')->get['route'], 'api'))) {
+                $this->dispatch(new Action('common/tb_themes', array('front' => $this)), new Action('error/not_found'));
+            }
+            ]]></add>
+        </operation>
+    </file>
+
+    <file path="system/engine/loader.php">
+        <operation>
+            <search><![CDATA[
+            extract($data);
+            ]]></search>
+            <add position="before"><![CDATA[
+            if (null != ($tbManager = $this->registry->get('tbManager')) && $tbManager->getContext()->getArea() == 'catalog' && $tbManager->isThemeExtensionLoaded()) {
+                $data['tbData'] = $tbManager->getThemeExtension()->getDataBag();
+            }
+            ]]></add>
+        </operation>
+    </file>
+
+    <file path="catalog/controller/common/seo_url.php">
+        <operation>
+            <search><![CDATA[
+            if (isset($this->request->get['_route_'])) {
+            ]]></search>
+            <add position="before"><![CDATA[
+            if (class_exists('TB_StaticThemeManager') && TB_StaticThemeManager::has() && TB_StaticThemeManager::get()->getContext()->getArea() == 'catalog' && TB_StaticThemeManager::get()->getThemeData()->route) {
+                return;
+            }
+            ]]></add>
+        </operation>
+        <operation>
+            <search><![CDATA[
+            class ControllerCommonSeoUrl extends Controller {
+            ]]></search>
+            <add position="before"><![CDATA[
+            class DbDecorator
+            {
+                private $db;
+                private static $results = array();
+                private static $escaped = array();
+
+                public function __construct($db)
+                {
+                    $this->db = $db;
+                }
+
+                public function query($sql)
+                {
+                    $h = md5($sql);
+                    if (!isset(self::$results[$h])) {
+                        self::$results[$h] = $this->db->query($sql);
+                    }
+
+                    return self::$results[$h];
+                }
+
+                public function escape($string)
+                {
+                    if (!isset(self::$escaped[$string])) {
+                        self::$escaped[$string] = $this->db->escape($string);
+                    }
+
+                    return self::$escaped[$string];
+                }
+            }
+            ]]></add>
+        </operation>
+        <operation>
+            <search><![CDATA[
+            class ControllerCommonSeoUrl extends Controller {
+            ]]></search>
+            <add position="after"><![CDATA[
+            private $db;
+            ]]></add>
+        </operation>
+        <operation>
+            <search><![CDATA[
+            public function index() {
+            ]]></search>
+            <add position="before"><![CDATA[
+            public function __construct($registry) {
+                parent::__construct($registry);
+                $this->db = new DbDecorator($registry->get('db'));
+            }
+            ]]></add>
+        </operation>
+    </file>
+
+    <file path="system/library/response.php">
+        <operation>
+            <search><![CDATA[
+            if ($this->output) {
+            ]]></search>
+            <add position="after"><![CDATA[
+            $do_replacement = class_exists('TB_StaticThemeManager') &&
+                              TB_StaticThemeManager::has() &&
+                              false !== strpos($this->output, '<!-- END_COMMON_HEADER -->') &&
+                              TB_StaticThemeManager::get()->getContext()->getArea() == 'catalog' &&
+                              !TB_RequestHelper::isAjaxRequest() &&
+                              !TB_StaticThemeManager::get()->getThemeData()->get('header_catched');
+            if ($do_replacement) {
+                ob_start();
+                ob_implicit_flush(0);
+
+                $tbData = TB_StaticThemeManager::get()->getThemeData();
+
+                $header = TB_Utils::strGetBefore($this->output, '<!-- END_COMMON_HEADER -->');
+                TB_StaticThemeManager::get()->getThemeExtension()->echoHeader($header);
+
+                $page_content = TB_Utils::strGetBetween($this->output, '<!-- END_COMMON_HEADER -->', '<!-- BEGIN_COMMON_FOOTER -->');
+                $tbData->slotStart($tbData->route . '.page_content');
+                echo str_replace('id="content"', '', $page_content);
+                $tbData->slotStop();
+
+                $footer = TB_Utils::strGetAfter($this->output, '<!-- BEGIN_COMMON_FOOTER -->');
+                TB_StaticThemeManager::get()->getThemeExtension()->echoFooter($footer);
+
+                $this->output = ob_get_clean();
+            }
+            ]]></add>
+        </operation>
+        <operation>
+            <search><![CDATA[
+            public function redirect($url, $status = 302) {
+            ]]></search>
+            <add position="after"><![CDATA[
+            if (class_exists('TB_StaticThemeManager') && TB_StaticThemeManager::has() && TB_StaticThemeManager::get()->getThemeData()->disable_redirect) {
+                return;
+            }
+            ]]></add>
+        </operation>
+    </file>
+
+    <file path="system/library/request.php">
+        <operation>
+            <search><![CDATA[
+            public function __construct() {
+            ]]></search>
+            <add position="after"><![CDATA[
+            if (get_magic_quotes_gpc()) {
+                function stripslashes_deep($value) {
+                    $value = is_array($value) ? array_map('stripslashes_deep', $value) : stripslashes($value);
+
+                    return $value;
+                }
+
+                $_POST = array_map('stripslashes_deep', $_POST);
+                $_GET = array_map('stripslashes_deep', $_GET);
+                $_COOKIE = array_map('stripslashes_deep', $_COOKIE);
+                $_REQUEST = array_map('stripslashes_deep', $_REQUEST);
+            }
+            ]]></add>
+        </operation>
+    </file>
+
+</modification>
