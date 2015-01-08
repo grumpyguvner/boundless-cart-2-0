@@ -10,6 +10,7 @@ admin/config*.php
 /system/logs/*
 /system/download/*
 /system/upload/*
+/system/modification/*
 
 .DS_Store
 /nbproject
