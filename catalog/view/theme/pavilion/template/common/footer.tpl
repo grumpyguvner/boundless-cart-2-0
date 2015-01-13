@@ -7,7 +7,7 @@
         <div class="tb_wrap">
           <div class="tb_col_1_1">
             <div class="tb_table">
-              <p id="copy"><span>&copy; Copyright 2014. Powered by <a href="http://www.opencart.com">Open Cart</a>.</span> <br /> <a class="tb_main_color" href="http://www.pavilion-theme.com">Pavilion theme</a> made by <a href="http://www.themeburn.com">ThemeBurn.com</a></p>
+              <p id="copy"><?php echo $powered; ?></p>
               <?php if ($tbData->payment_images): ?>
               <div id="payment_images">
                 <?php foreach($tbData->payment_images['rows'] as $payment): ?>

@@ -8,7 +8,7 @@
   <nav class="tb_tabs_nav" style="<?php echo $tabs_nav_style; ?>">
     <ul class="clearfix">
       <?php $i = 0; ?>
-      <?php foreach ($widget->getSubWidgets() as $id => $subWidget): ?><?php if (isset($subwidgets_content[$id])): ?><li<?php if($i == 0) echo ' class="tbActivated"'; ?>>
+      <?php foreach ($widget->getSubWidgets() as $id => $subWidget): ?><?php if (isset($subwidgets_content[$id])): ?><li<?php /* if($i == 0) echo ' class="tbActivated"'; */ ?>>
         <a href="{{current_url}}#<?php echo $id; ?>_tab">
           <?php if (isset($tabs[$i]['icon']) && !empty($tabs[$i]['icon'])): ?>
           <span class="tb_icon <?php echo $tabs[$i]['icon']; ?>" style="font-size: <?php echo $tabs[$i]['icon_size']; ?>px;"></span>
@@ -30,7 +30,7 @@
     <?php $i = 0; ?>
     <?php foreach ($widget->getSubWidgets() as $id => $subWidget): ?>
     <?php if (isset($subwidgets_content[$id])): ?>
-    <span class="tb_title<?php if($i == 0) echo ' tbActivated'; ?>">
+    <span class="tb_title<?php /* if($i == 0) echo ' tbActivated'; */ ?>">
       <?php if (isset($tabs[$i]['icon']) && !empty($tabs[$i]['icon'])): ?>
       <?php $has_icon = 1; ?>
       <span class="tb_icon <?php echo $tabs[$i]['icon']; ?>" style="font-size: <?php echo $tabs[$i]['icon_size']; ?>px;"></span>

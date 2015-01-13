@@ -6719,7 +6719,7 @@ body > .tb_row_fixed > #header_wrap > .tb_row_full .tb_row_table.tb_row_full > .
   vertical-align: middle;
 }
 #copy {
-  width: 25%;
+  width: 40%;
   font-size: 11px;
 }
 #payment_images {
