@@ -173,7 +173,8 @@
       header: 'span.tb_title',
       <?php if (!$auto_height): ?>autoHeight: false,<?php endif; ?>
       <?php if ($has_icon): ?>icons: false,<?php endif; ?>
-      collapsible: true
+      collapsible: true,
+      active: false,
     });
     <?php endif; ?>
   });
